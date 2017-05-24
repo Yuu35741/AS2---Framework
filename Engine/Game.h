@@ -137,5 +137,6 @@ private:
 	bool test = true;
 	bool norepeat[6] = { true,true,true,true,true,true };
 	bool Mousemode = true;
+	bool test1;
 	/********************************/
 };
