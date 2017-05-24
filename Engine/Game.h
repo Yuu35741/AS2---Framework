@@ -146,6 +146,12 @@ private:
 	Graphics::Bmp totalbmp;
 	D3DCOLOR totalsur[136 * 28];
 
+	Graphics::Bmp pokeballbmp;
+	D3DCOLOR pokeballsur[28 * 28];
+
+	Graphics::Bmp gamerulebmp;
+	D3DCOLOR* gamerulesur = (D3DCOLOR*)malloc(sizeof(D3DCOLOR) * 960 * 720);
+
 	D3DCOLOR transW = D3DCOLOR_XRGB(255, 255, 255);
 	D3DCOLOR transB = D3DCOLOR_XRGB(0, 0, 0);
 	Graphics::Bmp scorebmp;
@@ -185,6 +191,8 @@ private:
 	bool test = true;
 	bool norepeat[6] = { true,true,true,true,true,true };
 	bool Mousemode = true;
+	bool GameruleScreen = false;
+	int Option = 0;
 
 	int bossHP = 500;
 	int level = 1;

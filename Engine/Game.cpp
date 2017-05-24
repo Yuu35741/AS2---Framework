@@ -54,6 +54,8 @@ Game::Game(MainWindow& wnd)
 	Load("images\\leveltext.bmp", 132, 28,levelsur,&levelbmp,transB);
 	Load("images\\hp.bmp", 52, 24, hpsur, &hpbmp, transB);
 	Load("images\\total.bmp", 136, 28, totalsur, &totalbmp, transB);
+	Load("images\\pokeball.bmp", 28, 28, pokeballsur, &pokeballbmp, transB);
+	Load("images\\gamerule.bmp", 960, 720, gamerulesur, &gamerulebmp, transB);
 	LoadAnimation(&magikarptemp, magikarpbmp, magikarpsur, "images\\magikarp\\magikarp", 100, 132, 8, 5, transB);
 	Animating(&magikarptemp, &magikarp, 750, 100);
 	LoadAnimation(&runningpikachutemp , runningpikachubmp, surface1, "images\\runningpikachu\\runningpikachu", 152, 108, 4, 5, transB);
@@ -78,13 +80,26 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
-	if (wnd.kbd.KeyIsPressed(VK_RETURN))
-	{
-		startScreen = false;
-	}
+
 	if (startScreen)
 	{
 		UpdateAnimation(&runningpikachu);
+		int my = wnd.mouse.GetPosY();
+		int mx = wnd.mouse.GetPosX();
+		if (my >= 420 && my <= 460 && mx >= 345 && mx <= 615) Option = 0;
+		if (my > 460 && my <= 520 && mx >= 345 && mx <= 615) Option = 1;
+		if (my > 520 && my <= 570 && mx >= 345 && mx <= 615) Option = 2;
+		if (wnd.mouse.LeftIsPressed() && Option == 0) {
+			startScreen = false; GameruleScreen = false;
+		}
+		if (wnd.mouse.LeftIsPressed() && Option == 1) {
+			GameruleScreen = true;
+		}
+
+	}
+
+	if (GameruleScreen) {
+		if (wnd.kbd.KeyIsPressed(VK_RETURN)) GameruleScreen = false;
 	}
 
 	if (startScreen == false && gameoverScreen == false) {
@@ -337,8 +352,14 @@ void Game::ComposeFrame()
 	}
 	else if (startScreen && gameoverScreen == false) 
 	{
-		gfx.PrintBmp(0, 0, &startscreen);
-		gfx.DrawAnimation(&runningpikachu);
+		if (GameruleScreen == false) {
+			gfx.PrintBmp(0, 0, &startscreen);
+			gfx.DrawAnimation(&runningpikachu);
+			gfx.PrintBmp(320, 430 + Option * 50, &pokeballbmp);
+		}
+		else {
+			gfx.PrintBmp(0, 0, &gamerulebmp);
+		}
 	}
 	if (startScreen == false && gameoverScreen)
 	{
