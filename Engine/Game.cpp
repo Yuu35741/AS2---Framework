@@ -28,6 +28,11 @@ Game::Game(MainWindow& wnd)
 	grd(wnd),
 	gameoverSound(L"gameover.wav")
 {	
+	std::ifstream inputFile("users\\userInfo.data");
+	if (inputFile.is_open()) {
+		getline(inputFile, username);
+		inputFile.close();
+	}
 	grd.curLoc = { 3,3 };
 	grd.selLoc = { 7,7 };
 	allCellrng(grd.speed, 1, 4);
@@ -46,8 +51,11 @@ Game::Game(MainWindow& wnd)
 	Load("images\\legend\\thunder.bmp", 96, 96, &legendsur[96*96], &legend[1], transB);
 	Load("images\\legend\\fire.bmp", 96, 96, &legendsur[96*96*2], &legend[2], transB);
 	Load("images\\legend\\lugia.bmp", 96, 96, &legendsur[96*96*3], &legend[3], transB);
+	Load("images\\leveltext.bmp", 132, 28,levelsur,&levelbmp,transB);
+	Load("images\\hp.bmp", 52, 24, hpsur, &hpbmp, transB);
+	Load("images\\total.bmp", 136, 28, totalsur, &totalbmp, transB);
 	LoadAnimation(&magikarptemp, magikarpbmp, magikarpsur, "images\\magikarp\\magikarp", 100, 132, 8, 5, transB);
-	Animating(&magikarptemp, &magikarp, 750, 530);
+	Animating(&magikarptemp, &magikarp, 750, 100);
 	LoadAnimation(&runningpikachutemp , runningpikachubmp, surface1, "images\\runningpikachu\\runningpikachu", 152, 108, 4, 5, transB);
 	Animating(&runningpikachutemp, &runningpikachu,400,300);
 	for (int i = 0; i < 10; i++) {
@@ -80,54 +88,58 @@ void Game::UpdateModel()
 	}
 
 	if (startScreen == false && gameoverScreen == false) {
-		int temp = score;
-		int count = 1;
-		temp = temp / 10;
-		scoredigit[0] = 0;
-		while (temp != 0) {
-			temp = temp / 10;
-			count++;
+		digitdisect(score[0], scoredigit, nDigit[0]);
+		digitdisect(score[1], leveldigit, nDigit[1]);
+		if (triggerscan == true) frameattack++;
+		if (frameattack == frameattackdelay) {
+			if (score[0] > attackpower && score[1] > attackpower) {
+				score[1] -= attackpower;
+				score[0] -= attackpower;
+				frameattack = 0;
+			}
+			else if (score[1] <= attackpower) {
+				if (score[0] <= attackpower) score[0] = 0;
+				if (score[0] > attackpower) score[0] -= attackpower;
+				score[1] = 0;
+				frameattack = 0;
+			}
 		}
-		temp = score / 10;
-		nDigit = count;
-		for (int i = 1; i <= count; i++) {
-			scoredigit[i] = (temp % 10); temp = (temp - temp % 10) / 10;
+		if (level == 1) {
+			bossHP = 2000;
+			frameattackdelay = 300;
+			attackpower = 100;
 		}
-	}
-
-	if (score >= 2000) {
-		achievement[0] = true;
-		if (one[0]) {
+		if (level == 2) {
+			bossHP = 2000;
+			frameattackdelay = 180;
+			attackpower = 100;
+		}
+		if (level == 3) {
+			bossHP = 3000;
+			frameattackdelay = 600;
+			attackpower = 400;
+		}
+		if (level == 4) {
+			bossHP = 1000;
+			frameattackdelay = 60;
+			attackpower = 50;
+		}
+		if (level == 5) {
+			bossHP = 10000;
+			frameattackdelay = 3000;
+			attackpower = 5000;
+		}
+		if (score[1] >= 0 && score[1] < bossHP) {
+			for (int i = 0; i <= 4; i++) {
+				if (i == (level - 1)) achievement[i] = true;
+				else achievement[i] = false;
+			}
+		}
+		else if (score[1] >= bossHP) {
+			level++;
+			frameattack = 0;
 			triggertext = true;
-			one[0] = false;
-		}
-	}
-	if (score >= 4000) {
-		achievement[1] = true;
-		if (one[1]) {
-			triggertext = true;
-			one[1] = false;
-		}
-	}
-	if (score >= 6000) {
-		achievement[2] = true;
-		if (one[2]) {
-			triggertext = true;
-			one[2] = false;
-		}
-	}
-	if (score >= 8000) {
-		achievement[3] = true;
-		if (one[3]) {
-			triggertext = true;
-			one[3] = false;
-		}
-	}
-	if (score >= 10000) {
-		achievement[4] = true;
-		if (one[4]) {
-			triggertext = true;
-			one[4] = false;
+			score[1] = 0;
 		}
 	}
 
@@ -180,21 +192,8 @@ void Game::UpdateModel()
 
 	if (startScreen == false && gameoverScreen == false)
 	{
-		if (wnd.kbd.KeyIsPressed(VK_SPACE) && norepeat[5]) {
-			Mousemode = !Mousemode;
-			norepeat[5] = false;
-		}
-		if (!(wnd.kbd.KeyIsPressed(VK_SPACE))) norepeat[5] = true;
-		if (Mousemode)
-			GetMouseLoc(grd, wnd, grd.curLoc);
-		else {
-			grd.MoveUp(wnd, grd, norepeat[1]);
-			grd.MoveDown(wnd, grd, norepeat[2]);
-			grd.MoveLeft(wnd, grd, norepeat[3]);
-			grd.MoveRight(wnd, grd, norepeat[4]);
-		}
 
-
+		GetMouseLoc(grd, wnd, grd.curLoc);
 
 		if ((wnd.mouse.LeftIsPressed()) && test)
 		{
@@ -261,31 +260,39 @@ void Game::UpdateModel()
 		}
 	}
 
-	if (wnd.kbd.KeyIsPressed(VK_ESCAPE) && norepeat)
+	if (wnd.kbd.KeyIsPressed(VK_ESCAPE) && norepeat[0])
 	{
 		gameoverScreen = true;
 		norepeat[0] = false;
 		gameoverSound.Play();
 		startScreen = false;
+		logScore(username, score[0],level);
 	}
 	if (!(wnd.kbd.KeyIsPressed(VK_ESCAPE))) norepeat[0] = true;
+
 }
 
 void Game::ComposeFrame()
 {
 	if (startScreen == false && gameoverScreen == false)
 	{
-		gfx.PrintBmp(50, 580, &scorebmp);
-		for (int i = 0; i < nDigit; i++) {
-			gfx.PrintBmp(200 + nDigit*24 - 24 -24*i, 580, &numberbmp[scoredigit[i]]);
+		gfx.PrintBmp(50, 560, &scorebmp);
+		gfx.PrintBmp(50, 630, &totalbmp);
+		for (int i = 0; i < nDigit[0]; i++) {
+			gfx.PrintBmp(200 + nDigit[0]*24 - 24 -24*i, 625, &numberbmp[scoredigit[i]]);
 		}
+		for (int i = 0; i < nDigit[1]; i++) {
+			gfx.PrintBmp(200 + nDigit[1] * 24 - 24 - 24 * i, 560, &numberbmp[leveldigit[i]]);
+		}
+		gfx.PrintBmp(650, 650, &levelbmp);
+		createLevel(gfx, level, bossHP, score[1]);
 		if (triggertext) {
-			gfx.PrintBmp(100 - moveachieve, 650, &achievementbmp);
+			gfx.PrintBmp(100 - moveachieve, 680, &achievementbmp);
 		}
-		if (achievement[0]) gfx.PrintBmp(750, 50, &legend[0]);
+		if (achievement[0]) gfx.PrintBmp(750, 170, &legend[0]);
 		if (achievement[1]) gfx.PrintBmp(750, 170, &legend[1]);
-		if (achievement[2]) gfx.PrintBmp(750, 290, &legend[2]);
-		if (achievement[3]) gfx.PrintBmp(750, 410, &legend[3]);
+		if (achievement[2]) gfx.PrintBmp(750, 170, &legend[2]);
+		if (achievement[3]) gfx.PrintBmp(750, 170, &legend[3]);
 		if (achievement[4]) {
 			gfx.DrawAnimation(&magikarp);
 			UpdateAnimation(&magikarp);
@@ -336,7 +343,5 @@ void Game::ComposeFrame()
 	if (startScreen == false && gameoverScreen)
 	{
 		gfx.PrintBmp(280, 226, &gameoverscreen);
-	}
-	//gfx.DrawRect(30, 50, 630, 560, Colors::White);	
-	//gfx.PrintBmp(300, 300, &dude);   
+	}   
 }

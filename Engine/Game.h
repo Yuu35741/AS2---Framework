@@ -29,6 +29,10 @@
 #include <random>
 #include <stdlib.h>  
 #include <d3d9.h>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <iostream>
 class Game
 {
 public:
@@ -41,6 +45,41 @@ public:
 	void UpdateModel();
 	/********************************/
 	/*  User Functions              */
+	void digitdisect(int& originalnum, int digit[10], int& nDigit) {
+		int temp = originalnum;
+		int count = 1;
+		temp = temp / 10;
+		digit[0] = 0;
+		while (temp != 0) {
+			temp = temp / 10;
+			count++;
+		}
+		temp = originalnum / 10;
+		nDigit = count;
+		for (int i = 1; i <= count; i++) {
+			digit[i] = (temp % 10); temp = (temp - temp % 10) / 10;
+		}
+	}
+	void createLevel(Graphics& gfx, int level, int bossHP, int& levelScore) {
+		gfx.PrintBmp(810, 645, &numberbmp[level]);
+		gfx.PrintBmp(700, 270, &hpbmp);
+		percent = 100 - ((float)levelScore / (float)bossHP) * 100;
+		for (int i = 0; i <percent; i++) {
+			for (int j = 0; j < 20; j++) {
+				gfx.PutPixel(752+i, 272+j, Color(255, 255, 255));
+			}
+		}
+	}
+	void logScore(std::string username, int score, int level) {
+		std::ofstream logFile;
+		char filename[64];
+		char c[64];
+		std::strcpy(c, username.c_str());
+		sprintf(filename, "users\\%s.log", c);
+		logFile.open(filename, std::ofstream::app | std::ofstream::out);
+		logFile << "Level: "<< level << "       Total Score:  " << score << "\n";
+		logFile.close();
+	}
 	void GetMouseLoc(Grid& grd, MainWindow & wnd, Grid::Location& loccapture)
 	{
 		loccapture.x = (wnd.mouse.GetPosX() - 1 - 30) / 90;
@@ -96,10 +135,19 @@ private:
 	D3DCOLOR surface2[400*222];
 	D3DCOLOR* surface4 = (D3DCOLOR*)malloc(sizeof(D3DCOLOR) * 960 * 720);
 	D3DCOLOR surface3[400 * 267];
+	Graphics::Bmp startscreen, gameoverscreen;
+
+	Graphics::Bmp levelbmp;
+	D3DCOLOR levelsur[132 * 28];
+
+	Graphics::Bmp hpbmp;
+	D3DCOLOR hpsur[52 * 24];
+
+	Graphics::Bmp totalbmp;
+	D3DCOLOR totalsur[136 * 28];
 
 	D3DCOLOR transW = D3DCOLOR_XRGB(255, 255, 255);
 	D3DCOLOR transB = D3DCOLOR_XRGB(0, 0, 0);
-	Graphics::Bmp startscreen, gameoverscreen;
 	Graphics::Bmp scorebmp;
 	D3DCOLOR scoresur[140 * 44];
 	Graphics::Bmp numberbmp[10];
@@ -108,7 +156,7 @@ private:
 	Sound gameoverSound;
 	Grid grd;
 	bool scorenorepeat = true;
-
+	std::string username;
 	int move[7][7] = { 0 };
 	int step = 6;
 	bool once=true;
@@ -120,11 +168,11 @@ private:
 	bool booltemp[6] = { true };
 	int codetemp;
 	bool triggerscan = false;
-	int score = 0;
+	int score[2] = { 0 };
 	bool reverse = false;
 	int droptemp[7][7] = { 0 };
 	int dropdist=0;
-	int nDigit =6;
+	int nDigit[2] = { 0 };
 	int scoredigit[6] = { 0 };
 	bool achievement[5] = { false, false,false,false,false };
 	bool triggertext = false;
@@ -137,6 +185,14 @@ private:
 	bool test = true;
 	bool norepeat[6] = { true,true,true,true,true,true };
 	bool Mousemode = true;
-	bool test1;
+
+	int bossHP = 500;
+	int level = 1;
+	int bossHPdigit[10] = { 0 };
+	int percent = 0;
+	int leveldigit[10] = { 0 };
+	int frameattack = 0;
+	int frameattackdelay = 60;
+	int attackpower = 100;
 	/********************************/
 };

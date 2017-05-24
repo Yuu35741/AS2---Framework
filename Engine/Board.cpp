@@ -85,7 +85,7 @@ Grid::Grid(MainWindow& wnd)
 }
 
 
-void Grid::CreateGrid(Grid & grd, Graphics & gfx, int move[7][7], int& step, bool& triggerscan, int& dist, int& score, bool& scoretrigger)
+void Grid::CreateGrid(Grid & grd, Graphics & gfx, int move[7][7], int& step, bool& triggerscan, int& dist, int score[2], bool& scoretrigger)
 {
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -207,7 +207,7 @@ void Grid::fillCell(Location& loc, Graphics& gfx, char* direct, int move[7][7])
 	}
 }
 
-void Grid::Scan(Location& loc, Grid& grd, bool trigger, int& dist, int& score, bool& scoretrigger)
+void Grid::Scan(Location& loc, Grid& grd, bool trigger, int& dist, int score[2], bool& scoretrigger)
 {
 	unsigned char x = loc.x;
 	unsigned char y = loc.y;
@@ -220,7 +220,8 @@ void Grid::Scan(Location& loc, Grid& grd, bool trigger, int& dist, int& score, b
 			y++;
 		}
 		if ((x - loc.x) >= 2) {
-			score = score + (x - loc.x + 1) * 10;
+			score[0] = score[0] + (x - loc.x + 1) * 10;
+			score[1] = score[1] + (x - loc.x + 1) * 10;
 			for (int i = loc.x; i <= x; i++) {
 				for (int j = loc.y; j >= 0; j--) {
 					if (j!=0) grd.loc[i][j].code = grd.loc[i][j - 1].code;
@@ -229,7 +230,8 @@ void Grid::Scan(Location& loc, Grid& grd, bool trigger, int& dist, int& score, b
 			}
 		}
 		if ((y - loc.y) >= 2) {
-			score = score+ (y - loc.y + 1) * 10;
+			score[0] = score[0] + (y - loc.y + 1) * 10;
+			score[1] = score[1] + (y - loc.y + 1) * 10;
 			for (int i = y; i >=0; i--) {
 				if (i-y+loc.y-1>=0) grd.loc[loc.x][i].code = grd.loc[loc.x][i-y+loc.y-1].code;
 				else grd.loc[loc.x][i].code = grd.rng(1, 4);
